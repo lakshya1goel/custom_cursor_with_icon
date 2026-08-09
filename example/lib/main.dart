@@ -31,16 +31,12 @@ class ExamplePage extends StatefulWidget {
 
 class _ExamplePageState extends State<ExamplePage> {
   final _basicController = TextEditingController();
-  final _styledController = TextEditingController();
   final _glowController = TextEditingController();
-  final _passwordController = TextEditingController();
 
   @override
   void dispose() {
     _basicController.dispose();
-    _styledController.dispose();
     _glowController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
@@ -75,33 +71,6 @@ class _ExamplePageState extends State<ExamplePage> {
                 onChanged: (value) {
                   debugPrint('Value: $value');
                 },
-              ),
-            ),
-            const SizedBox(height: 24),
-            _sectionTitle('Styled cursor'),
-            _card(
-              child: CustomCursorTextField(
-                controller: _styledController,
-                hint: 'Large cursor, big icon',
-                hintStyle: const TextStyle(
-                  fontSize: 20,
-                  color: Colors.grey,
-                ),
-                style: const TextStyle(
-                  fontSize: 20,
-                  color: Colors.teal,
-                ),
-                cursorColor: Colors.teal,
-                cursorWidth: 2.5,
-                cursorHeightRatio: 0.9,
-                iconSize: 16,
-                iconGap: 6,
-                icon: const Icon(
-                  Icons.star,
-                  size: 16,
-                  color: Colors.teal,
-                ),
-                blinkDuration: const Duration(milliseconds: 300),
               ),
             ),
             const SizedBox(height: 24),
@@ -157,23 +126,6 @@ class _ExamplePageState extends State<ExamplePage> {
                   size: 12,
                   color: Colors.red,
                 ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            _sectionTitle('Password field'),
-            _card(
-              child: CustomCursorTextField(
-                controller: _passwordController,
-                hint: 'Enter password',
-                obscureText: true,
-                obscuringCharacter: '\u2022',
-                cursorColor: Colors.indigo,
-                icon: const Icon(
-                  Icons.lock,
-                  size: 12,
-                  color: Colors.indigo,
-                ),
-                suffixIcon: const Icon(Icons.visibility_off),
               ),
             ),
             const SizedBox(height: 24),

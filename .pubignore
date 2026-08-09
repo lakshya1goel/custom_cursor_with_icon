@@ -1,0 +1,29 @@
+# Platform directories (not needed for a pure Dart/Flutter package)
+android/
+ios/
+linux/
+macos/
+web/
+windows/
+
+# Build artifacts
+build/
+example/build/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+
+# Dart tool
+.dart_tool/
