@@ -1,4 +1,4 @@
-## 0.0.1
+## 0.1.0
 
 * Initial release.
 * `CustomCursorTextField` widget with animated cursor and icon.

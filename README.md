@@ -30,7 +30,7 @@ A Flutter `TextField` widget with an animated cursor that displays a customizabl
 
 ```yaml
 dependencies:
-  custom_cursor_with_icon: ^0.0.1
+  custom_cursor_with_icon: ^0.1.0
 ```
 
 ### 2. Install
