@@ -94,7 +94,9 @@ class CustomCursorTextField extends StatefulWidget {
     this.textInputAction,
     this.unfocusOnKeyboardDismiss = false,
     this.unfocusOnTapOutside = false,
-  });
+  })  : assert(cursorHeightRatio > 0, 'cursorHeightRatio must be positive'),
+        assert(cursorWidth > 0, 'cursorWidth must be positive'),
+        assert(iconSize > 0, 'iconSize must be positive');
 
   /// Whether the text field should be focused initially.
   ///
@@ -330,7 +332,10 @@ class _CustomCursorTextFieldState extends State<CustomCursorTextField>
   late final AnimationController _cursorBlinkController;
   late final AnimationController _cursorPositionController;
 
-  final _measurementController = TextEditingController();
+  /// Reusable [TextPainter] for measuring text width and height.
+  /// Replaces the previous hidden measurement [TextField], avoiding an
+  /// extra widget in the tree.
+  final _textPainter = TextPainter(maxLines: 1);
 
   TextEditingController? _internalController;
   TextEditingController get _effectiveController =>
@@ -347,9 +352,9 @@ class _CustomCursorTextFieldState extends State<CustomCursorTextField>
   VoidCallback? _scrollListener;
 
   final _textFieldKey = GlobalKey();
-  final _measurementFieldKey = GlobalKey();
 
-  Size _measurementSize = const Size(0, 0);
+  /// Cached text line height from [TextPainter], used for cursor sizing.
+  double _textHeight = 0;
   bool _isCursorVisible = true;
   bool _wasKeyboardVisible = false;
 
@@ -366,25 +371,55 @@ class _CustomCursorTextFieldState extends State<CustomCursorTextField>
     return 12.0;
   }
 
+  /// Resolves the effective text style, falling back to the theme default.
+  TextStyle _resolveStyle(BuildContext context) {
+    return widget.style ??
+        Theme.of(context).textTheme.bodyLarge ??
+        const TextStyle();
+  }
+
+  /// Measures text dimensions using [TextPainter] and updates the cursor's
+  /// horizontal position based on text width, scroll offset, and visible area.
   void _updateCursorPosition({bool rerender = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
       final textFieldBox =
           _textFieldKey.currentContext?.findRenderObject() as RenderBox?;
-      final measurementBox =
-          _measurementFieldKey.currentContext?.findRenderObject() as RenderBox?;
-      if (textFieldBox == null || measurementBox == null) return;
+      if (textFieldBox == null) return;
 
-      _measurementSize = measurementBox.size;
+      final resolvedStyle = _resolveStyle(context);
+      final textDirection = Directionality.of(context);
 
-      final scrollOffset = _scrollController.hasClients
-          ? _scrollController.offset
-          : 0.0;
+      // Measure text height using a representative character
+      _textPainter
+        ..text = TextSpan(
+          text: _effectiveController.text.isEmpty
+              ? 'X'
+              : _effectiveController.text,
+          style: resolvedStyle,
+        )
+        ..textDirection = textDirection
+        ..layout();
+      _textHeight = _textPainter.height;
 
-      final textWidthToCursor = measurementBox.size.width;
-      final maxVisibleWidth =
-          textFieldBox.constraints.maxWidth - (2 * _horizontalPadding);
+      // Measure text width up to cursor position
+      final cursorOffset = _effectiveController.selection.base.offset;
+      final textToCursor =
+          (cursorOffset >= 0 && cursorOffset <= _effectiveController.text.length)
+              ? _effectiveController.text.substring(0, cursorOffset)
+              : _effectiveController.text;
+
+      _textPainter
+        ..text = TextSpan(text: textToCursor, style: resolvedStyle)
+        ..layout();
+      final textWidthToCursor = _textPainter.width;
+
+      final scrollOffset =
+          _scrollController.hasClients ? _scrollController.offset : 0.0;
+      final isScrolled = scrollOffset > 0;
+      final maxVisibleWidth = textFieldBox.constraints.maxWidth -
+          (isScrolled ? _horizontalPadding : 2 * _horizontalPadding);
 
       double cursorX;
       bool shouldShowCursor = true;
@@ -489,10 +524,6 @@ class _CustomCursorTextFieldState extends State<CustomCursorTextField>
         return;
       }
 
-      _measurementController.value = TextEditingValue(
-        text: _effectiveController.text.substring(0, cursorOffset),
-      );
-
       final isCursorAtEnd =
           cursorOffset == _effectiveController.text.length;
       if (isCursorAtEnd && _scrollController.hasClients) {
@@ -555,7 +586,7 @@ class _CustomCursorTextFieldState extends State<CustomCursorTextField>
     WidgetsBinding.instance.removeObserver(this);
     _cursorBlinkController.dispose();
     _cursorPositionController.dispose();
-    _measurementController.dispose();
+    _textPainter.dispose();
     if (_focusListener != null) {
       _focusNode.removeListener(_focusListener!);
     }
@@ -581,13 +612,7 @@ class _CustomCursorTextFieldState extends State<CustomCursorTextField>
   @override
   Widget build(BuildContext context) {
     _updateCursorPosition();
-
-    return Stack(
-      children: [
-        _buildTextField(),
-        _buildMeasurementField(),
-      ],
-    );
+    return _buildTextField();
   }
 
   Widget _buildTextField() {
@@ -654,6 +679,7 @@ class _CustomCursorTextFieldState extends State<CustomCursorTextField>
         widget.cursorColor ?? Theme.of(context).colorScheme.primary;
 
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         if (_isOverflowing)
           ShaderMask(
@@ -706,7 +732,9 @@ class _CustomCursorTextFieldState extends State<CustomCursorTextField>
       child: FadeTransition(
         opacity: _cursorBlinkController.view,
         child: Padding(
-          padding: _effectivePadding,
+          padding: _isOverflowing
+              ? (_effectivePadding as EdgeInsets).copyWith(left: 0)
+              : _effectivePadding,
           child: Container(
             constraints:
                 BoxConstraints.tightFor(width: widget.iconSize),
@@ -717,14 +745,14 @@ class _CustomCursorTextFieldState extends State<CustomCursorTextField>
                 Container(
                   constraints:
                       BoxConstraints.tightFor(width: widget.cursorWidth),
-                  height: _measurementSize.height * widget.cursorHeightRatio,
+                  height: _textHeight * widget.cursorHeightRatio,
                   decoration: BoxDecoration(
                     color: cursorColor,
                     boxShadow: widget.cursorBoxShadow,
                   ),
                 ),
                 Positioned(
-                  top: _measurementSize.height * widget.cursorHeightRatio +
+                  top: _textHeight * widget.cursorHeightRatio +
                       widget.iconGap +
                       widget.iconTopOffset,
                   left: widget.iconLeftOffset,
@@ -740,29 +768,6 @@ class _CustomCursorTextFieldState extends State<CustomCursorTextField>
                   ),
                 ),
               ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMeasurementField() {
-    return IgnorePointer(
-      child: Opacity(
-        opacity: 0,
-        child: UnconstrainedBox(
-          alignment: Alignment.centerLeft,
-          child: IntrinsicWidth(
-            child: TextField(
-              key: _measurementFieldKey,
-              controller: _measurementController,
-              decoration: const InputDecoration(
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              style: widget.style,
-              keyboardType: widget.keyboardType,
             ),
           ),
         ),
