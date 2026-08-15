@@ -1,6 +1,6 @@
 name: custom_cursor_with_icon
 description: A Flutter TextField widget with an animated cursor that displays a customizable icon below the caret. Fully configurable cursor appearance, blinking behavior, and icon placement.
-version: 0.1.0
+version: 1.0.0
 homepage: https://github.com/lakshya1goel/custom_cursor_with_icon
 repository: https://github.com/lakshya1goel/custom_cursor_with_icon
 issue_tracker: https://github.com/lakshya1goel/custom_cursor_with_icon/issues
