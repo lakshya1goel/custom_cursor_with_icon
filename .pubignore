@@ -1,4 +1,7 @@
-# Platform directories (not needed for a pure Dart/Flutter package)
+# Large media (linked via GitHub URL in README)
+assets/preview_video.mp4
+
+# Platform folders (not needed for a pure Dart/Flutter package)
 android/
 ios/
 linux/
@@ -8,22 +11,7 @@ windows/
 
 # Build artifacts
 build/
-example/build/
 
 # IDE files
-.idea/
-.vscode/
 *.iml
-
-# OS files
-.DS_Store
-
-# Git
-.git/
-.gitignore
-
-# CI/CD
-.github/
-
-# Dart tool
-.dart_tool/
+.idea/

@@ -14,7 +14,7 @@ topics:
 
 screenshots:
   - description: 'Custom Cursor TextField examples showing various cursor icons and styles.'
-    path: assets/preview.png
+    path: assets/preview_image.jpg
 
 environment:
   sdk: ^3.8.0
