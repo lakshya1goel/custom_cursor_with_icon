@@ -16,6 +16,10 @@ A Flutter `TextField` widget with an animated cursor that displays a **customiza
   <img src="https://github.com/lakshya1goel/custom_cursor_with_icon/raw/main/assets/preview_image.jpg" alt="Custom Cursor TextField Preview" width="350"/>
 </p>
 
+
+https://github.com/user-attachments/assets/8cf6ea62-67de-4bef-bffc-514674e64fd1
+
+
 https://github.com/lakshya1goel/custom_cursor_with_icon/raw/main/assets/preview_video.mp4
 
 ---
