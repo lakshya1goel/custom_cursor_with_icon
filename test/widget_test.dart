@@ -91,25 +91,39 @@ void main() {
       expect(find.byType(CustomCursorTextField), findsOneWidget);
     });
 
-    testWidgets('displays custom icon', (tester) async {
+    testWidgets('displays custom icon when focused', (tester) async {
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+
       await tester.pumpWidget(
         buildTestApp(
-          child: const CustomCursorTextField(
-            icon: Icon(Icons.edit, size: 12),
+          child: CustomCursorTextField(
+            focusNode: focusNode,
+            icon: const Icon(Icons.edit, size: 12),
           ),
         ),
       );
       await pumpFrames(tester);
 
+      focusNode.requestFocus();
+      await pumpFrames(tester);
+
       expect(find.byIcon(Icons.edit), findsOneWidget);
     });
 
-    testWidgets('displays default icon when none provided', (tester) async {
+    testWidgets('displays default icon when focused and none provided',
+        (tester) async {
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+
       await tester.pumpWidget(
         buildTestApp(
-          child: const CustomCursorTextField(),
+          child: CustomCursorTextField(focusNode: focusNode),
         ),
       );
+      await pumpFrames(tester);
+
+      focusNode.requestFocus();
       await pumpFrames(tester);
 
       expect(find.byIcon(Icons.arrow_drop_down), findsOneWidget);
@@ -246,18 +260,15 @@ void main() {
       expect(find.byType(CustomCursorTextField), findsOneWidget);
     });
 
-    testWidgets('shouldBlinkAlways false does not blink when unfocused',
-        (tester) async {
+    testWidgets('cursor is hidden when unfocused', (tester) async {
       await tester.pumpWidget(
         buildTestApp(
-          child: const CustomCursorTextField(
-            shouldBlinkAlways: false,
-          ),
+          child: const CustomCursorTextField(),
         ),
       );
       await pumpFrames(tester);
 
-      // No cursor icon should be visible when unfocused and shouldBlinkAlways is false
+      // No cursor icon should be visible when unfocused
       expect(find.byIcon(Icons.arrow_drop_down), findsNothing);
     });
   });
